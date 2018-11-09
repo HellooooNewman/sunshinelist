@@ -1,0 +1,35 @@
+{
+  "name": "sunshine-list",
+  "version": "1.0.0",
+  "description": "Application that sshows detailed stats about the list",
+  "main": "server.js",
+  "author": "Kevin Newman",
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "server": "nodemon server.js"
+  },
+  "keywords": [
+    "sunshine",
+    "list",
+    "ontario",
+    "pay",
+    "public",
+    "sector",
+    "civic",
+    "node",
+    "express",
+    "vue"
+  ],
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "concurrently": "^4.0.1",
+    "csvtojson": "^2.0.8",
+    "express": "^4.16.3",
+    "mongoose": "^5.2.14"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
+  }
+}
