@@ -1,49 +1,49 @@
-var fs = require('fs');
-const csv = require("csvtojson");
+var fs = require('fs')
+const csv = require("csvtojson")
 
 // Load in data set
-var normalizedPath = require("path").join(__dirname, "raw-data");
+var normalizedPath = require("path").join(__dirname, "raw-data")
 
-console.time("convert to json");
+
 var yearsArray = []
 var years = []
 
 // Get the file names
 var folder = require("fs").readdirSync(normalizedPath)
 
+console.time("convert to json")
+// Loop over each file in the folder
 folder.forEach((file) => {
+  // make sure they end with .csv
   if(file.endsWith(".csv")) {
-    // Get the csv contents
-
+    // Load the csv content and add it to the array
     csv()
     .fromFile(normalizedPath + '\/' + file)
     .then(jsonObj => {
-      yearsArray.push(jsonObj);
-      years = [...years, ...jsonObj];
+      yearsArray.push(jsonObj)
+      years = [...years, ...jsonObj]
       if(yearsArray.length === folder.length){
-        console.log('done');
-        console.timeEnd("convert to json");
-        formatData();
+        console.timeEnd("convert to json")
+        formatData()
       }
-    });
+    })
   }
-});
-
-
+})
 
 function formatData(){
-  console.time("Format json");
+  console.time("Format json")
   // Format Data
-  var cache = {};
+  var cache = {}
   var newData = []
+  var missingPeople = []
   years.map(function(person) {
     // Format data
-    let salary_paid = parseFloat(person["Salary Paid"].replace(/[$,]/g,''));
-    let taxable_benefits = parseFloat(person["Taxable Benefits"].replace(/[$,]/g,''));
-    let year = parseInt(person["Calendar Year"]);
+    let salary_paid = parseFloat(person["Salary Paid"].replace(/[$,]/g,''))
+    let taxable_benefits = parseFloat(person["Taxable Benefits"].replace(/[$,]/g,''))
+    let year = parseInt(person["Calendar Year"])
 
     if(cache[`${person["First Name"]} ${person["Last Name"]}`]){
-      // console.log(`${person["First Name"]} ${person["Last Name"]} is a duplicate`);
+      // console.log(`${person["First Name"]} ${person["Last Name"]} is a duplicate`)
       // Add year to existing person
       let newYear = {
         year: year,
@@ -54,14 +54,13 @@ function formatData(){
         employer: person["Employer"]
       }
 
-      let index = newData.findIndex(data => data.first_name === person["First Name"] && data.last_name === person["Last Name"]);
+      let index = newData.findIndex(data => data.first_name === person["First Name"] && data.last_name === person["Last Name"])
       if(index === -1 || index === undefined) {
-        console.log(person);
+        missingPeople.push(person);
       } else {
-        newData[index].years.push(newYear);
+        newData[index].years.push(newYear)
       }
     } else {
-
       // Add new person
       newData.push({
         first_name: person["First Name"],
@@ -74,14 +73,37 @@ function formatData(){
           job_title: person["Job Title"],
           employer: person["Employer"]
         }],
-      });
-      cache[`${person["First Name"]} ${person["Last Name"]}`] = true;
-      // console.log(`${person["First Name"]} ${person["Last Name"]} is new`);
+      })
+      cache[`${person["First Name"]} ${person["Last Name"]}`] = true
+      // console.log(`${person["First Name"]} ${person["Last Name"]} is new`)
     }
   })
-  console.timeEnd("Format json");
+  console.timeEnd("Format json")
 
-  const content = JSON.stringify(newData);
-  fs.writeFileSync('./years.json', content);
+  var batchSize = 100000
+  var batch = []
+
+  let i = 0
+  for([index, value] of newData.entries()){
+    i++
+    batch.push(data)
+
+    if(i == batchSize){
+      let content = JSON.stringify(batch)
+      console.time(`Write json ${index / batchSize}`)
+      fs.writeFileSync(`./people/people-${index / batchSize}.json`, content)
+      console.timeEnd(`Write json ${index / batchSize}`)
+      i = 0
+      batch = []
+    }
+
+    if(index === newData.length - 1){
+      let content = JSON.stringify(batch)
+      console.time(`Write json ${index / batchSize}`)
+      fs.writeFileSync(`./people/people-${index / batchSize}.json`, content)
+      console.timeEnd(`Write json ${index / batchSize}`)
+      i = 0
+      batch = []
+    }
+  }
 }
-
